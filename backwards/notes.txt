@@ -1,0 +1,18 @@
+increment_depth.py can be greatly improved upon in terms of speed
+-> graph is redundant
+
+simulate_branch.py and simulate_tm.py can be greatly improved upon in terms of speed.
+
+params:
+python stronger_backwards.py --phases 2 --stepc_lim 2500000 --history True --DEPTH 100
+
+TODO:
+Besides improving upon terms of speed
+1. Phase 3
+2. Phase 4 (needs more theory work)
+3. "time" param, max time spent per TM
+
+Results:
+Without Phase 2
+BB(3,3), BB(2,5), BB(6,2) no holdouts solved
+BB(7,2) ran on a small subset, all known nonhalters, 4 verified out of 255
