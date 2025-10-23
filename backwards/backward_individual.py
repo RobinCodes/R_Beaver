@@ -7,7 +7,7 @@ from tools.parser import parse_tm
 from tools.simulate_tm import simulate_tm
 from increment_depth import incr_graph
 from loops_manager import loops_manager
-from loops_decider import loops_decider
+from backwards.loops_selector import loops_decider
 
 def manager(machine: str, phases: int, stepc_lim: int, history: bool, DEPTH: int) -> str:
     parsed_machine = parse_tm(machine)
@@ -81,9 +81,8 @@ def manager(machine: str, phases: int, stepc_lim: int, history: bool, DEPTH: int
                 f.write(f"There are a total of {len(loops)} loops.\n")
                 f.write(f"The longest loop is {len(max(loops, key=lambda s: len(s.split(" -> ")), default=None).split(" -> "))} configurations long.\n")
 
-        for j, loop in enumerate(loops):
-            if loops_decider(loop):
-                loops.remove(loop)
+        #for j, loop in enumerate(loops):
+            #loops_decider(loop) smthng smthng
                 
         if loops == []:
             if history:

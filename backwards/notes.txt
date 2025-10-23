@@ -1,18 +1,23 @@
-increment_depth.py can be greatly improved upon in terms of speed
--> graph is redundant
-
-simulate_branch.py and simulate_tm.py can be greatly improved upon in terms of speed.
-
+Big optimalizations:
+1. Merging all Phases so we don't work a lot of duplicate
+2. The way we generate the graph is very inefficient
+3. Simulate_branch and Simulate_TM func are super inefficient. (+ naive simulation)
+4. Add option to skip a TM once we know at least one branch can't be verified in depth limit.
+5. Start based on known data from a given folder. (Do this AFTER merging phases)
 params:
 python stronger_backwards.py --phases 2 --stepc_lim 2500000 --history True --DEPTH 100
 
 TODO:
 Besides improving upon terms of speed
-1. Phase 3
-2. Phase 4 (needs more theory work)
-3. "time" param, max time spent per TM
+1. Phase 2
+2. Phase 3
+3. param to set a given list of configs as visited in forwards-simulation
+(given in a seperate file forwards-configs.txt) where TM (in machines.txt) |-> line |-> forwards_config (list)
+4. "time" param, max time spent per TM
+5. Phase 4 (needs more theory work)
+6. Rewrite in C++
 
 Results:
-Without Phase 2
+Only Phase 1:
 BB(3,3), BB(2,5), BB(6,2) no holdouts solved
 BB(7,2) ran on a small subset, all known nonhalters, 4 verified out of 255
