@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-#add the project root (parent of 'scripts/') to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from tools.parser import parse_tm
 from tools.simulate_tm import simulate_tm
@@ -10,12 +9,26 @@ from loops_manager import loops_manager
 from backwards.loops_selector import loops_selector
 
 def manager(machine: str, phases: int, stepc_lim: int, history: bool, DEPTH: int) -> str:
-    parsed_machine = parse_tm(machine)
-    graph = dict()
-    branches = list()
-    sim_tm_data = simulate_tm(machine, stepc_lim)
-    visited_configs = sim_tm_data[0]
+    """Main manager for backwards reasoning on a Turing machine.
     
+    Args:
+        machine: Machine description string
+        phases: Number of phases to run (1 or 2)
+        stepc_lim: Step count limit for forward simulation
+        history: Whether to write history files
+        DEPTH: Maximum depth for backwards search
+    
+    Returns:
+        str: Result status (HALT, NONHALT, or UNKNOWN with reason)
+    """
+    parsed_machine = parse_tm(machine)
+    graph = {}
+    branches = []
+    
+    # Run forward simulation
+    visited_configs, halted, step_count = simulate_tm(machine, stepc_lim)
+    
+    # Setup history file if needed
     if history:
         base_dir = Path(__file__).parent / "individual" / f"{machine}_results"
         file_path = base_dir / "history.txt"
@@ -23,99 +36,117 @@ def manager(machine: str, phases: int, stepc_lim: int, history: bool, DEPTH: int
         
         with open(file_path, "w") as f:
             blocks = machine.split("_")
-            states = [chr(ord("A") + i) for i in range(len(blocks))]
-            num_states = len(states)
+            num_states = len(blocks)
             num_symbols = len(blocks[0]) // 3
-            f.write(f"The machine has {num_states} states and {num_symbols} symbols.\n")
-            f.write(f"The maximum number of configurations is {num_states * (num_symbols**2) - num_symbols + 1}\n")
-            f.write(f"The maximum depth needed for reaching Phase 2 (or deciding the machine) is {(num_states * (num_symbols**2) - num_symbols + 1) + 1}\n")
-
-    if sim_tm_data[1]:
+            max_configs = num_states * (num_symbols ** 2) - num_symbols + 1
+            
+            f.write(f"Machine: {machine}\n")
+            f.write(f"States: {num_states}, Symbols: {num_symbols}\n")
+            f.write(f"Max configurations: {max_configs}\n")
+            f.write(f"Max depth for Phase 2: {max_configs + 1}\n\n")
+    
+    # Check if machine halted
+    if halted:
         if history:
             with open(file_path, "a") as f:
-                f.write("HALT\n")
-            
+                f.write(f"HALT (at step {step_count + 1})\n")
         return "HALT"
-
+    
+    # Find initial halting transition
     try:
-        graph[0] = [next(k for k, v in parsed_machine.items() if v in ("---", "1RZ"))]
+        halt_config = next(k for k, v in parsed_machine.items() 
+                          if v in ("---", "1RZ", "0RZ", "1LZ", "0LZ"))
+        graph[0] = [halt_config]
     except StopIteration:
         if history:
             with open(file_path, "a") as f:
                 f.write("NONHALT - NO HALTING TRANSITION\n")
-        return "NONHALT" # no halting transition
+        return "NONHALT"
     
-    for d in range(1, DEPTH+1):
-        incremented_data = incr_graph(d, parsed_machine, graph, branches, machine, history, visited_configs)
-        graph = incremented_data[1]
-        branches = incremented_data[0]
-        if incremented_data[2] == 1:
+    # Phase 1: Build backwards tree
+    depth_reached = 0
+    for d in range(1, DEPTH + 1):
+        branches, graph, status = incr_graph(
+            d, parsed_machine, graph, branches, machine, history, visited_configs
+        )
+        
+        if status == 1:
             if history:
                 with open(file_path, "a") as f:
                     f.write("UNKNOWN - STEPC LIMIT - PROBABLE HALTER\n")
             return "UNKNOWN - STEPC LIMIT"
-        if loops_manager(branches)[0] == []:
+        
+        depth_reached = d
+        
+        # Check if tree is finite
+        remaining_branches, _, _ = loops_manager(branches)
+        if not remaining_branches:
             break
-
-    loops = loops_manager(branches)[1]
-    preconfigs = loops_manager(branches)[2]
-
+    
+    # Analyze loops
+    remaining_branches, loops, preconfigs = loops_manager(branches)
+    
     if history:
-        with open(f"{Path(__file__).parent}/individual/{machine}_results/history.txt", "a") as f:
-            f.write(f"Phase 1 results: {d}:\n")
+        with open(file_path, "a") as f:
+            f.write(f"Phase 1 completed at depth {depth_reached}\n")
             if loops:
-                for l in loops:
-                    f.write(f"{l}\n")
-
+                f.write(f"Found {len(loops)} loops:\n")
+                for loop in loops:
+                    f.write(f"  {loop}\n")
             else:
-                if loops_manager(branches)[0] == []:
-                    f.write("NONHALT - FINITE")
+                f.write("No loops found\n")
             f.write("\n")
-
-    if loops == [] and loops_manager(branches)[0] == []:
+    
+    # Check if tree is finite (no loops, no remaining branches)
+    if not loops and not remaining_branches:
+        if history:
+            with open(file_path, "a") as f:
+                f.write("NONHALT - FINITE TREE\n")
         return "NONHALT"
     
-    if phases > 1 and loops_manager(branches)[0] == []:
+    # Phase 2: Analyze loops
+    if phases > 1 and not remaining_branches:
         if history:
-            with open(f"{Path(__file__).parent}/individual/{machine}_results/history.txt", "a") as f:
-                f.write(f"Reached Phase 2 at depth {str(len(branches[0]))}\n")
-                f.write(f"There are a total of {len(loops)} loops.\n")
-                f.write(f"The longest loop is {len(max(loops, key=lambda s: len(s.split(" -> ")), default=None).split(" -> "))} configurations long.\n")
-
-        remaining_loops = []
+            with open(file_path, "a") as f:
+                f.write(f"\n=== Phase 2 ===\n")
+                f.write(f"Reached Phase 2 at depth {depth_reached}\n")
+                f.write(f"Total loops: {len(loops)}\n")
+                if loops:
+                    max_loop = max(loops, key=lambda s: len(s.split(" -> ")))
+                    max_loop_len = len(max_loop.split(" -> "))
+                    f.write(f"Longest loop: {max_loop_len} configurations\n\n")
         
-        for j, loop in enumerate(loops): 
-            status = loops_selector(loop, parsed_machine, DEPTH, preconfigs[loop]) # important: status is for loop status, not machine status.
+        undecided_loops = []
+        
+        for loop in loops:
+            status = loops_selector(loop, parsed_machine, DEPTH, preconfigs[loop])
+            
             if status == "UNKNOWN":
-                remaining_loops.append(loop)
+                undecided_loops.append(loop)
             elif status == "NONHALT":
                 if history:
                     with open(file_path, "a") as f:
-                        f.write(f"Impossible loop: - {loop}\n")
-
-        if remaining_loops == []:
+                        f.write(f"Impossible loop: {loop}\n")
+        
+        if not undecided_loops:
             if history:
                 with open(file_path, "a") as f:
-                    f.write("NONHALT\n")
+                    f.write("\nNONHALT - ALL LOOPS IMPOSSIBLE\n")
             return "NONHALT"
         else:
             if history:
                 with open(file_path, "a") as f:
-                    f.write(f"UNKNOWN - {len(remaining_loops)} LOOPS NOT RESOLVED:\n")
-                    for loop in remaining_loops:
-                        f.write(f"Unknown loop: - {loop}\n")
+                    f.write(f"\nUNKNOWN - {len(undecided_loops)} UNRESOLVED LOOPS:\n")
+                    for loop in undecided_loops:
+                        f.write(f"  {loop}\n")
             return "UNKNOWN - UNDECIDED LOOPS"
-        
     else:
+        # Didn't reach Phase 2 or Phase 2 not requested
         if history:
-            if phases == 2:
-                with open(f"{Path(__file__).parent}/individual/{machine}_results/history.txt", "a") as f:
-                    f.write(f"UNKNOWN - PHASE 2 NOT REACHED\n")
-                    f.write("\n")
-            else:
-                with open(f"{Path(__file__).parent}/individual/{machine}_results/history.txt", "a") as f:
-                    f.write(f"UNKNOWN - INFINITE TREE NO PHASE 2\n")
-                    f.write("\n")
-
+            with open(file_path, "a") as f:
+                if phases == 1:
+                    f.write("Phase 2 not requested\n")
+                else:
+                    f.write("UNKNOWN - PHASE 2 NOT REACHED (infinite tree)\n")
+        
         return "UNKNOWN - INFINITE TREE NO PHASE 2"
-
