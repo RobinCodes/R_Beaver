@@ -4,13 +4,21 @@ def loops_manager(branches):
     loops = []
     new_branches = []
     loop_configs = set()
+    preconfigs = dict()
     for branch in branches:
         has_loop, loop = detect_loop(branch)
 
-        if has_loop:
+        if has_loop: # we detect a loop
             loops.append(' -> '.join(loop))
             for config in loop:
                 loop_configs.add(config)
+            # for collecting the "preconfig" part of the branch:
+            result = []
+            for item in reversed(branch):
+                if item in loop:
+                    break
+                result.insert(0, item) # fill up backwards because backwards with backwards is forwards, so order is preserved
+            preconfigs[' -> '.join(loop)] = result # preconfigs in the branch
         else:
             # filter out complexes
             if any(config in loop_configs for config in branch):
@@ -32,4 +40,5 @@ def loops_manager(branches):
         if not any(p.startswith(short + ' ->') for short in loops_filtered):
             loops_filtered.append(p)
     
-    return branches, loops_filtered
+    print(preconfigs)
+    return branches, loops_filtered, preconfigs

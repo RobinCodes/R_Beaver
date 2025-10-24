@@ -1,5 +1,7 @@
 from tools.parser import parse_tm
 
+# -------------------------------- NAIVE SIMULATE TM -------------------------------- #
+
 def simulate_tm(machine: str, stepc_lim: int) -> tuple[set[str], bool, int]:
     """Simulate a Turing machine for a given number of steps.
     Return the set of visited configurations, whether it halted, and the step count"""

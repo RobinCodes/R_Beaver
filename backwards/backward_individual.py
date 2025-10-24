@@ -7,7 +7,7 @@ from tools.parser import parse_tm
 from tools.simulate_tm import simulate_tm
 from increment_depth import incr_graph
 from loops_manager import loops_manager
-from backwards.loops_selector import loops_decider
+from backwards.loops_selector import loops_selector
 
 def manager(machine: str, phases: int, stepc_lim: int, history: bool, DEPTH: int) -> str:
     parsed_machine = parse_tm(machine)
@@ -58,6 +58,7 @@ def manager(machine: str, phases: int, stepc_lim: int, history: bool, DEPTH: int
             break
 
     loops = loops_manager(branches)[1]
+    preconfigs = loops_manager(branches)[2]
 
     if history:
         with open(f"{Path(__file__).parent}/individual/{machine}_results/history.txt", "a") as f:
@@ -74,17 +75,25 @@ def manager(machine: str, phases: int, stepc_lim: int, history: bool, DEPTH: int
     if loops == [] and loops_manager(branches)[0] == []:
         return "NONHALT"
     
-    if phases == 2 and loops_manager(branches)[0] == []:
+    if phases > 1 and loops_manager(branches)[0] == []:
         if history:
             with open(f"{Path(__file__).parent}/individual/{machine}_results/history.txt", "a") as f:
                 f.write(f"Reached Phase 2 at depth {str(len(branches[0]))}\n")
                 f.write(f"There are a total of {len(loops)} loops.\n")
                 f.write(f"The longest loop is {len(max(loops, key=lambda s: len(s.split(" -> ")), default=None).split(" -> "))} configurations long.\n")
 
-        #for j, loop in enumerate(loops):
-            #loops_decider(loop) smthng smthng
-                
-        if loops == []:
+        remaining_loops = []
+        
+        for j, loop in enumerate(loops): 
+            status = loops_selector(loop, parsed_machine, DEPTH, preconfigs[loop]) # important: status is for loop status, not machine status.
+            if status == "UNKNOWN":
+                remaining_loops.append(loop)
+            elif status == "NONHALT":
+                if history:
+                    with open(file_path, "a") as f:
+                        f.write(f"Impossible loop: - {loop}\n")
+
+        if remaining_loops == []:
             if history:
                 with open(file_path, "a") as f:
                     f.write("NONHALT\n")
@@ -92,8 +101,11 @@ def manager(machine: str, phases: int, stepc_lim: int, history: bool, DEPTH: int
         else:
             if history:
                 with open(file_path, "a") as f:
-                    f.write("UNKNOWN - DEPTH LIMIT\n")
-            return "UNKNOWN - DEPTH LIMIT"
+                    f.write(f"UNKNOWN - {len(remaining_loops)} LOOPS NOT RESOLVED:\n")
+                    for loop in remaining_loops:
+                        f.write(f"Unknown loop: - {loop}\n")
+            return "UNKNOWN - UNDECIDED LOOPS"
+        
     else:
         if history:
             if phases == 2:

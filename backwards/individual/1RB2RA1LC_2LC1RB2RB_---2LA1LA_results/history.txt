@@ -1,0 +1,27 @@
+The machine has 3 states and 3 symbols.
+The maximum number of configurations is 25
+The maximum depth needed for reaching Phase 2 (or deciding the machine) is 26
+Depth 1:
+
+Depth 2:
+C0 -> B00L
+C0 -> A20L
+
+Depth 3:
+C0 -> A20L -> C12L
+C0 -> A20L -> C22L
+
+Depth 4:
+C0 -> A20L -> C22L -> A22L
+C0 -> A20L -> C22L -> B02L
+C0 -> A20L -> C12L -> B01L
+C0 -> A20L -> C12L -> A21L
+
+Phase 1 results: 4:
+C12L -> A21L
+C22L -> A22L
+
+Reached Phase 2 at depth 5
+There are a total of 2 loops.
+The longest loop is 2 configurations long.
+NONHALT

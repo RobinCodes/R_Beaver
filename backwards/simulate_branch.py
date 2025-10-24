@@ -1,6 +1,8 @@
 def simulate_branch(branch: list[str], machine: dict) -> bool:
     """Simulate a branch of configurations to check for contradictions.
-    Return True if a contradiction is found, otherwise False."""
+    Return True if a contradiction is found, otherwise False.
+    expected branch format: [config_n, config_n-1, ..., config_0 = halt_config] (from latest to earliest)
+    """
     
     tape = dict()
     head_pos = 0

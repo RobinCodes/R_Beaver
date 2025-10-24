@@ -15,11 +15,15 @@ TODO:
 (given in a seperate file forwards-configs.txt) where TM (in machines.txt) |-> line |-> forwards_config (list)
 4. "time" param, max time spent per TM
 5. Phase 4 (needs more theory work)
-6. Add a singular-file edition
-7. [For peers] Rewrite in C++
-8. [For peers] Improving upon terms of speed
+6. Make it work with multiple undefined transitions.
+7. Add a singular-file edition
+8. [For peers] Rewrite in C++
+9. [For peers] Improving upon terms of speed
 
 Results:
 Only Phase 1:
 BB(3,3), BB(2,5), BB(6,2) no holdouts solved
 BB(7,2) ran on a small subset, all known nonhalters, 4 verified out of 255
+
+Module tested: parser.py, simulate_tm.py, detect_loops.py, increment_depth.py, loops_manager.py,
+               backwards_individual.py, loops_selector.py, simulate_branch.py, stronger_backwards.py

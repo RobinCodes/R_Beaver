@@ -2,7 +2,7 @@ from pathlib import Path
 from backward_individual import manager
 import argparse
 import time
-
+# -------------------------------- ARGUMENT PARSING -------------------------------- #
 parser = argparse.ArgumentParser(description="Process simulation parameters.")
 
 # Define arguments
@@ -36,11 +36,13 @@ results_folder.mkdir(parents=True, exist_ok=True)
 if results_file.exists() and not results_file.is_file():
     raise Exception(f"{results_file} exists but is not a file!")
 
+# -------------------------------- MANAGER -------------------------------- #
+
 # Read machines
 with machines_file.open("r") as f:
     machines = [line.strip() for line in f if line.strip()]
 
-# Write results safely
+# For each machine, run the individual Backwards-reasoning and write results afterwards.
 with results_file.open("w") as f:
     for i, machine in enumerate(machines):
         result = manager(machine, phases, stepc_lim, history, DEPTH)
