@@ -9,7 +9,7 @@ Parameters:
 python stronger_backwards.py --phases 2 --stepc_lim 2500000 --history True --DEPTH 100
 
 TODO:
-1. Phase 2 Step 2
+1. Write more data to "history" after Phase 2. Remove print statements from src.
 2. Phase 3
 3. param to set a given list of configs as visited in forwards-simulation
 (given in a seperate file forwards-configs.txt) where TM (in machines.txt) |-> line |-> forwards_config (list)

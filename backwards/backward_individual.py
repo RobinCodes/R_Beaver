@@ -119,7 +119,7 @@ def manager(machine: str, phases: int, stepc_lim: int, history: bool, DEPTH: int
         undecided_loops = []
         
         for loop in loops:
-            status = loops_selector(loop, parsed_machine, DEPTH, preconfigs[loop])
+            status = loops_selector(loop, parsed_machine, DEPTH, preconfigs[loop], visited_configs)
             
             if status == "UNKNOWN":
                 undecided_loops.append(loop)

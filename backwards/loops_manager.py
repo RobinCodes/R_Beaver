@@ -51,6 +51,5 @@ def loops_manager(branches):
     for p in loops_sorted:
         if not any(p.startswith(short + ' ->') for short in loops_filtered):
             loops_filtered.append(p)
-    
-    print("Preconfigs:", preconfigs)
+
     return new_branches, loops_filtered, preconfigs

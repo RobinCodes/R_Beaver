@@ -1,0 +1,36 @@
+Machine: 1RB2RA1LC_2LC1RB2RB_---2LA1LA
+States: 3, Symbols: 3
+Max configurations: 25
+Max depth for Phase 2: 26
+
+Depth 1:
+
+Depth 2:
+C0 -> A20L
+C0 -> B00L
+
+Depth 3:
+C0 -> A20L -> C12L
+C0 -> A20L -> C22L
+
+Depth 4:
+C0 -> A20L -> C12L -> A21L
+C0 -> A20L -> C12L -> B01L
+C0 -> A20L -> C22L -> A22L
+C0 -> A20L -> C22L -> B02L
+
+Phase 1 completed at depth 4
+Found 2 loops:
+  C22L -> A22L
+  C12L -> A21L
+
+
+=== Phase 2 ===
+Reached Phase 2 at depth 4
+Total loops: 2
+Longest loop: 2 configurations
+
+
+UNKNOWN - 2 UNRESOLVED LOOPS:
+  C22L -> A22L
+  C12L -> A21L
