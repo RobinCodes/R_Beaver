@@ -73,7 +73,7 @@ def loops_selector(loop: str, machine: dict, d: int, preconfigs: list[str],
     print(f"  -> Found {len(entry_points)} potential entry points")
     
     # Build branches backwards from entry points, checking for contradictions
-    branches_at_depth = [[entry] for entry in entry_points]
+    branches_at_depth = [parts + [entry] for entry in entry_points]
     
     for depth in range(1, d + 1):
         print(f"  -> Depth {depth}: {len(branches_at_depth)} branches")
@@ -81,6 +81,9 @@ def loops_selector(loop: str, machine: dict, d: int, preconfigs: list[str],
         # Check all current branches
         valid_branches = []
         found_initial_config = False
+        
+        if depth in [1,2,3]:
+                print(branches_at_depth)
         
         for branch in branches_at_depth:
             # Check for contradiction

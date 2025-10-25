@@ -21,8 +21,8 @@ C0 -> A20L -> C22L -> B02L
 
 Phase 1 completed at depth 4
 Found 2 loops:
-  C22L -> A22L
   C12L -> A21L
+  C22L -> A22L
 
 
 === Phase 2 ===
@@ -32,5 +32,5 @@ Longest loop: 2 configurations
 
 
 UNKNOWN - 2 UNRESOLVED LOOPS:
-  C22L -> A22L
   C12L -> A21L
+  C22L -> A22L

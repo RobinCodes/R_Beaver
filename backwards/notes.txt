@@ -19,6 +19,7 @@ TODO:
 7. Add a singular-file edition
 8. [For peers] Rewrite in C++
 9. [For peers] Improving upon terms of speed
+10. Very GPU-able!
 
 Results:
 Only Phase 1:
